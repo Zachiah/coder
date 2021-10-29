@@ -1,109 +1,24 @@
 <script lang="ts">
-import TextField from "./lib/TextField.svelte";
+  import TextField from "./lib/components/TextField.svelte";
+  import LETTERS from "./lib/data/letters";
+  import type { Letter } from "./lib/data/letters";
+  import all from "./lib/filters/all";
+  import type { Filter } from "./lib/filters/Filter";
+  import prime from "./lib/filters/prime";
+  import add from "./lib/steps/add";
+  import password from "./lib/steps/password";
+  import type { Step } from "./lib/steps/Step";
+  import action from "./lib/util/action";
+  import { encode,decode } from "./lib/util/code";
 
-type Filter = (n: number) => boolean;
-  type Step = (c: string, i: number, decode: boolean) => string;
+ 
+  const THE_PASSWORD = `😋-p2J¤}l😂¢😑0g:=😪😋L¤a😂😔😖.😬~B3😋😮😔sal😔,+😮😔B😋p©:(_Gleg§/😥😊B§U😈😋😦\o😊😒g😣😆:z😊😱z😂😦?_😬😰B0😊9g[B😝😠😂§*😊😋😆Br😡?&!sm😑§G!😆_*UbB&😠0Y😋'😌 V😋!?}>😠43😥q<[`
 
-  const LETTERS = [
-    "a",
-    "b",
-    "c",
-    "d",
-    "e",
-    "f",
-    "g",
-    "h",
-    "i",
-    "j",
-    "k",
-    "l",
-    "m",
-    "n",
-    "o",
-    "p",
-    "q",
-    "r",
-    "s",
-    "t",
-    "u",
-    "v",
-    "w",
-    "x",
-    "y",
-    "z",
-  ];
-
-  const prime: Filter = (n) => {
-    if (n < 2) {
-      return false;
-    }
-    for (let i = 2; i < Math.sqrt(n); i++) {
-      if (n % i === 0) {
-        return false;
-      }
-    }
-    return true;
-  };
-
-  const perfectSquare: Filter = (n) => {
-    const sqrt = Math.sqrt(n);
-    return sqrt % 1 === 0;
-  };
-
-  const all: Filter = (n) => true;
-
-  const add: (n: number | string) => Step = (a) => (c, i, decode) => {
-    if (typeof a === "string") {
-      a = LETTERS.indexOf(a.toLowerCase());
-    }
-
-    if (decode) {
-      return LETTERS[(26 + LETTERS.indexOf(c.toLowerCase()) - a) % 26];
-    } else {
-      return LETTERS[(26 + a + LETTERS.indexOf(c.toLowerCase())) % 26];
-    }
-  };
-
-  const password: (pass: string) => Step = (pass) => (c, i, decode) => {
-    return add(pass[i % pass.length])(c,i,decode)
-  }
-
-
-
-  const action =
-    (filter: Filter) => (step: Step) => (text: string) => (decode: boolean) => {
-      return text
-        .split("")
-        .map((c, i) => {
-          if (!LETTERS.includes(c.toLowerCase())) {
-            return c;
-          }
-
-          if (filter(i)) {
-            return step(c,i, decode);
-          }
-          return c;
-        })
-        .join("");
-    };
-
-  const STEPS: ((text: string) => (decode: boolean) => string)[] = [
+  const STEPS = [
     action(all)(add(1)),
     action(prime)(add(1)),
-    action(all)(password("ahardpassword"))
+    action(all)(password(THE_PASSWORD.split("") as Letter[])),
   ];
-
-  const decode = (text: string) => {
-    return STEPS.reverse().reduce((t: string, step) => {
-      return step(t)(true);
-    }, text);
-  };
-
-  const encode = (text: string) => {
-    return STEPS.reduce((t: string, step) => {
-      return step(t)(false);
-    }, text);
-  };
 
   //@ts-ignore
   (window.encode = encode) && (window.decode = decode);
@@ -112,7 +27,16 @@ type Filter = (n: number) => boolean;
 
   let text = "";
 
-  $: encodedText = encode(text);
+  $: encodedText = encode(text.split("") as Letter[], STEPS).join("");
+
+  
+  $: text = text.split("").filter(c => LETTERS.includes(c as Letter)).join("");
+
+  const handleEncodedInput = (e: KeyboardEvent) => {
+    const { value } = e.target as HTMLInputElement;
+    text = decode(value.split('').filter(c => LETTERS.includes(c as Letter)) as Letter[], STEPS).join("");
+    (e.target as HTMLInputElement).value = encode(text.split("") as Letter[], STEPS).join("");
+  };
 </script>
 
 <div class="h-screen flex items-center p-2">
@@ -120,22 +44,12 @@ type Filter = (n: number) => boolean;
     <h1 class="text-center text-xl font-bold bg-blue-200 rounded-md p-2">
       Coder!
     </h1>
-    <TextField
-      label="Text"
-      value={text}
-      on:input={(e) => {
-        //@ts-ignore
-        text = e.target.value;
-      }}
-    />
+    <TextField label="Text" bind:value={text} />
 
     <TextField
       label="Encoded Text"
       value={encodedText}
-      on:input={(e) => {
-        //@ts-ignore
-        text = decode(e.target.value);
-      }}
+      on:input={handleEncodedInput}
     />
   </div>
 </div>
