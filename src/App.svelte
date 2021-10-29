@@ -1,6 +1,9 @@
 <script lang="ts">
 import TextField from "./lib/TextField.svelte";
 
+type Filter = (n: number) => boolean;
+  type Step = (c: string, i: number, decode: boolean) => string;
+
   const LETTERS = [
     "a",
     "b",
@@ -49,7 +52,7 @@ import TextField from "./lib/TextField.svelte";
 
   const all: Filter = (n) => true;
 
-  const add: (n: number | string) => Step = (a) => (c, decode) => {
+  const add: (n: number | string) => Step = (a) => (c, i, decode) => {
     if (typeof a === "string") {
       a = LETTERS.indexOf(a.toLowerCase());
     }
@@ -61,22 +64,23 @@ import TextField from "./lib/TextField.svelte";
     }
   };
 
-  // Here is the api I want
-  // STEPS = [
-  //     action(prime)(add(1)),
-  //     action(all)(pass('abc'))
-  // ]
+  const password: (pass: string) => Step = (pass) => (c, i, decode) => {
+    return add(pass[i % pass.length])(c,i,decode)
+  }
 
-  type Filter = (n: number) => boolean;
-  type Step = (c: string, decode: boolean) => string;
+
 
   const action =
     (filter: Filter) => (step: Step) => (text: string) => (decode: boolean) => {
       return text
         .split("")
         .map((c, i) => {
+          if (!LETTERS.includes(c.toLowerCase())) {
+            return c;
+          }
+
           if (filter(i)) {
-            return step(c, decode);
+            return step(c,i, decode);
           }
           return c;
         })
@@ -86,6 +90,7 @@ import TextField from "./lib/TextField.svelte";
   const STEPS: ((text: string) => (decode: boolean) => string)[] = [
     action(all)(add(1)),
     action(prime)(add(1)),
+    action(all)(password("ahardpassword"))
   ];
 
   const decode = (text: string) => {
@@ -111,25 +116,26 @@ import TextField from "./lib/TextField.svelte";
 </script>
 
 <div class="h-screen flex items-center p-2">
-<div class="flex flex-col w-100 max-w-full m-auto gap-4">
-
-    <h1 class="text-center text-xl font-bold bg-blue-200 rounded-md p-2">Coder!</h1>
-<TextField
-  label="Text"
-  value={text}
-    on:input={(e) => {
+  <div class="flex flex-col w-100 max-w-full m-auto gap-4">
+    <h1 class="text-center text-xl font-bold bg-blue-200 rounded-md p-2">
+      Coder!
+    </h1>
+    <TextField
+      label="Text"
+      value={text}
+      on:input={(e) => {
         //@ts-ignore
         text = e.target.value;
-    }}
-/>
+      }}
+    />
 
-<TextField
-  label="Encoded Text"
-  value={encodedText}
-  on:input={(e) => {
-      //@ts-ignore
-      text = decode(e.target.value);
-  }}
-/>
-</div>
+    <TextField
+      label="Encoded Text"
+      value={encodedText}
+      on:input={(e) => {
+        //@ts-ignore
+        text = decode(e.target.value);
+      }}
+    />
+  </div>
 </div>
