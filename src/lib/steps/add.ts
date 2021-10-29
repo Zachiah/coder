@@ -6,11 +6,12 @@ const add: (n: number | Letter) => Step = (a) => (c, i, decode) => {
     if (typeof a === "string") {
       a = LETTERS.indexOf(a);
     }
+    const cIndex = LETTERS.indexOf(c);
 
     if (decode) {
-      return LETTERS[(LETTERS.length + LETTERS.indexOf(c) - a) % LETTERS.length];
+      return LETTERS[(LETTERS.length + cIndex - a) % LETTERS.length];
     } else {
-      return LETTERS[(LETTERS.length + a + LETTERS.indexOf(c)) % LETTERS.length];
+      return LETTERS[(a + cIndex) % LETTERS.length];
     }
   };
 

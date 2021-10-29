@@ -15,13 +15,16 @@
   const THE_PASSWORD = `😋-p2J¤}l😂¢😑0g:=😪😋L¤a😂😔😖.😬~B3😋😮😔sal😔,+😮😔B😋p©:(_Gleg§/😥😊B§U😈😋😦\o😊😒g😣😆:z😊😱z😂😦?_😬😰B0😊9g[B😝😠😂§*😊😋😆Br😡?&!sm😑§G!😆_*UbB&😠0Y😋'😌 V😋!?}>😠43😥q<[`
 
   const STEPS = [
-    action(all)(add(1)),
+    action(all)(add(2)),
     action(prime)(add(1)),
     action(all)(password(THE_PASSWORD.split("") as Letter[])),
   ];
 
   //@ts-ignore
-  (window.encode = encode) && (window.decode = decode);
+  window.encode = (text) => encode(text.split(),STEPS).join("")
+  
+  //@ts-ignore
+  window.decode = (text) => decode(text.split(),STEPS).join("");
 
   console.log();
 
