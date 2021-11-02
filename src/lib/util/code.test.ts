@@ -1,6 +1,6 @@
-import type { Letter } from "../src/lib/data/letters";
-import {encode,decode} from "../src/lib/util/code";
-import STEPS from "../src/lib/data/steps";
+import type { Letter } from "../data/letters";
+import {encode,decode} from "./code";
+import STEPS from "../data/steps";
 
 // A lot of random strings to test
 const messages = [
@@ -19,10 +19,10 @@ const messages = [
 ].map(s => s.split('')) as Letter[][];
 
 // test that encoding and decoding the same message does nothing
-test("encode and decode", () => {
-    for (const message of messages) {
-        const encoded = encode(message, STEPS);
-        const decoded = decode(encoded, STEPS);
-        expect(decoded).toEqual(message);
-    }
+describe("encode and decode", () => {
+    it('should do nothing to text when passing through encode and decode', () => {
+        messages.forEach(message => {
+            expect(decode(encode(message,STEPS),STEPS)).toEqual(message);
+        });
+    });
 });
